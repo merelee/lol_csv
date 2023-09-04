@@ -5,7 +5,7 @@ import pprint
 
 #build champ url
 league_version = '13.17.1'
-champ_name = 'Yone'
+champ_name = 'Garen'
 champ_url = 'http://ddragon.leagueoflegends.com/cdn/' + league_version + '/data/en_US/champion/' + champ_name + '.json'
 
 #get json data
@@ -25,10 +25,16 @@ if json_data.ok:
         
         #grab stats
         stats_data = champ_info['stats']
-        headers = [key for key in stats_data.keys()]
+        
+        #write headers (name, then stats)
+        headers = ['name'] + [key for key in stats_data.keys()]
         writer = csv.DictWriter(csvfile, fieldnames=headers)
         writer.writeheader()
-        writer.writerow({key: value for key, value in stats_data.items()})
+        
+        #write data under headers
+        row_data = {'name': champ_name}
+        row_data.update({key: value for key, value in stats_data.items()})
+        writer.writerow(row_data)
             
         print(f'Successfully created {csv_filename}')
 
