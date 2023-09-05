@@ -1,42 +1,53 @@
 import requests
 import json
 import csv
-import pprint
 
 #build champ url
 league_version = '13.17.1'
-champ_name = 'Garen'
-champ_url = 'http://ddragon.leagueoflegends.com/cdn/' + league_version + '/data/en_US/champion/' + champ_name + '.json'
-
-#get json data
-json_data = requests.get(champ_url)
-
-if json_data.ok:
+base_url = 'http://ddragon.leagueoflegends.com/cdn/' + league_version + '/data/en_US/champion/'
     
-    #grab champ info
-    champ_info = json_data.json()['data'][champ_name]
-    #included dictionaries: allytips, blurb, enemytips, id, image, info, key, lore, name, partype, passive, recommended, skins, spells, stats, tags, title
-    #pprint.pprint(champ_info)
+#get list of champions
+with open('champions.json', 'r') as file:
+    data = json.load(file)
     
-    #create the csv
-    csv_filename = champ_name + '_data.csv'
+champ_list = data['champions']
 
-    with open(csv_filename, 'w', newline='') as csvfile:
+#create the csv
+csv_filename = 'champion_data.csv'
+print(f'Creating {csv_filename}...')
+
+with open(csv_filename, 'w', newline='') as csvfile:
+    writer = None
+    error = False
+
+    #loop through list of champions to grab json data
+    for champ in champ_list:
+        champ_id = champ['id']
+        champ_name = champ['name']
+        champ_url = base_url + champ_id + '.json'
+        json_data = requests.get(champ_url)
         
-        #grab stats
-        stats_data = champ_info['stats']
-        
-        #write headers (name, then stats)
-        headers = ['name'] + [key for key in stats_data.keys()]
-        writer = csv.DictWriter(csvfile, fieldnames=headers)
-        writer.writeheader()
-        
-        #write data under headers
-        row_data = {'name': champ_name}
-        row_data.update({key: value for key, value in stats_data.items()})
-        writer.writerow(row_data)
+        #check if url gives status code 2xx, then grab champ info
+        if json_data.ok:
+            champ_info = json_data.json()['data'][champ_id]
+            #included dictionaries: allytips, blurb, enemytips, id, image, info, key, lore, name, partype, passive, recommended, skins, spells, stats, tags, title
+
+            #first champ
+            if writer is None:
+                stats_data = champ_info['stats']
+                headers = ['name'] + [key for key in stats_data.keys()] #writes headers (names, then stats)
+                writer = csv.DictWriter(csvfile, fieldnames=headers)
+                writer.writeheader()
+
+            #subsequent champs
+            row_data = {'name': champ_name}
+            row_data.update({key: value for key, value in champ_info['stats'].items()})
+            writer.writerow(row_data)
             
-        print(f'Successfully created {csv_filename}')
+        else:
+            error = True
+            
+    if error:
+        print (f'Error adding champ data. Make sure the league_version is correct.\nleague_version: {league_version}')
 
-else:
-    print (f'Error creating CSV. Make sure the league_version and champ_name are correct.\nleague_version: {league_version}\nchamp_name: {champ_name}')
+print(f'Successfully created {csv_filename}')
