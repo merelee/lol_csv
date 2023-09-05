@@ -1,12 +1,8 @@
 # LoL CSV
-Creates a .csv file that looks like this:
+Automatically create a .csv file with every champion's stats.
 
 ![Example of exported .csv file](https://github.com/merelee/lol_csv/blob/main/example.png)
 
-Open champ_data.py and check line 6. Make sure the league_version is correct.
+**Requires the requests module.** Install with `python -m pip install requests`
 
-Current: `league_version = '13.17.1'`
-
-Save and in cmd type `python champ_data.py`
-
-It will automatically create a file named champion_data.csv
+Run `python champ_data.py`. A new file will be created named champion_data_###.csv
