@@ -4,17 +4,15 @@ import csv
 
 #get data dragon version, and build base champ url
 versions_file = requests.get('https://ddragon.leagueoflegends.com/api/versions.json')
-version_check = versions_file.json()[0]
-base_url = 'http://ddragon.leagueoflegends.com/cdn/' + version_check + '/data/en_US/champion/'
+version = versions_file.json()[0]
+base_url = 'http://ddragon.leagueoflegends.com/cdn/' + version + '/data/en_US/champion/'
 
 #get list of champions
-with open('champions.json', 'r') as file:
-    data = json.load(file)
-    
-champ_list = data['champions']
+champions = requests.get('https://raw.githubusercontent.com/merelee/lol_csv/main/champions.json')
+champ_list = champions.json()['champions']
 
 #create the csv
-csv_filename = 'champion_data_' + version_check + '.csv'
+csv_filename = 'champion_data_' + version + '.csv'
 print(f'Creating {csv_filename}...')
 
 with open(csv_filename, 'w', newline='') as csvfile:
@@ -33,15 +31,20 @@ with open(csv_filename, 'w', newline='') as csvfile:
             champ_info = json_data.json()['data'][champ_id]
             #included dictionaries: allytips, blurb, enemytips, id, image, info, key, lore, name, partype, passive, recommended, skins, spells, stats, tags, title
 
-            #first champ
+            #headers
             if writer is None:
                 stats_data = champ_info['stats']
-                headers = ['name'] + [key for key in stats_data.keys()] #writes headers (name, then stats)
+                headers = ['name'] + [key for key in stats_data.keys()] + ['role1'] + ['role2'] #writes headers (name, stats, roles)
                 writer = csv.DictWriter(csvfile, fieldnames=headers)
                 writer.writeheader()
 
-            #subsequent champs
+            #champ data
             row_data = {'name': champ_name}
+            if len(champ_info['tags']) >= 2:
+                row_data['role1'] = champ_info['tags'][0]
+                row_data['role2'] = champ_info['tags'][1]
+            else:
+                row_data['role1'] = champ_info['tags'][0]
             row_data.update({key: value for key, value in champ_info['stats'].items()})
             writer.writerow(row_data)
             

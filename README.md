@@ -5,4 +5,6 @@ Automatically create a .csv file with every champion's stats.
 
 **Requires the requests module.** Install with `python -m pip install requests`
 
-Run `python champ_data.py`. A new file will be created named champion_data_###.csv
+Run `python champ_data.py`
+
+A new file will be created named champion_data_(lolversion).csv
